@@ -72,7 +72,8 @@ func ParseId(rowId string) (*uint64, error) {
 }
 
 func ParseDate(rowDate string) (*time.Time, error) {
-	date, err := time.Parse("1/02", rowDate)
+	y := strconv.Itoa(CurrentYear())
+	date, err := time.Parse("2006/1/02", y+"/"+rowDate)
 	if err != nil {
 		return nil, err
 	}
@@ -96,10 +97,16 @@ func ProcessBaseReport(amount float64) {
 	baseReport.TotalBalance += amount
 }
 
-func TnxByMonth(date string) {
+func ProcessTnxByMonth(date string) {
 	d := strings.Split(date, "/")
 
 	month, _ := strconv.ParseUint(d[0], 10, 32)
+	m := time.Month(month)
 
-	txnsMonth[month] += 1
+	txnsMonth[m.String()] += 1
+}
+
+func CurrentYear() int {
+	year, _, _ := time.Now().Date()
+	return year
 }
