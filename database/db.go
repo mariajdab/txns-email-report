@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	_ "embed"
 	"fmt"
+	"github.com/mariajdab/txns-email-report/models"
 	"log"
 	"os"
 )
@@ -40,4 +41,33 @@ func CreateTable(db *sql.DB) error {
 
 	fmt.Println("Successfully created the table")
 	return err
+}
+
+//InsertTxns insert multiples values
+func InsertTxns(db *sql.DB, data []models.AccountTxn) error {
+	sqlStm := "INSERT INTO register_transactions(id, date_at, txn) VALUES "
+	var v []interface{}
+
+	i := 0
+	for _, row := range data {
+		sqlStm += fmt.Sprintf("($%d, $%d, $%d),", i+1, i+2, i+3)
+		v = append(v, row.Id, row.Date, row.Transaction)
+		i += 3
+	}
+	// remove the last ','
+	sqlStm = sqlStm[0 : len(sqlStm)-1]
+	log.Println(v)
+
+	//prepare the statement
+	stmt, err := db.Prepare(sqlStm)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	_, err = stmt.Exec(v...)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return nil
 }

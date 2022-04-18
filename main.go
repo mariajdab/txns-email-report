@@ -34,20 +34,22 @@ func main() {
 		log.Fatal(err)
 	}
 
-	err = ProcessFile(filePath)
+	data, err := ProcessFile(filePath)
 	if err != nil {
 		log.Fatalln("an error happened processing the file")
 	}
+
+	database.InsertTxns(db, data)
 
 	fmt.Println(txnsMonth)
 	fmt.Println(baseReport)
 }
 
-func ProcessFile(file string) error {
+func ProcessFile(file string) ([]models.AccountTxn, error) {
 
 	f, err := os.Open(file)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer f.Close()
 
@@ -55,12 +57,12 @@ func ProcessFile(file string) error {
 
 	fl, err := ReadFirstLine(csvFile)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if !ValidateFirstLine(fl) {
 		err = errors.New("mismatch fields expected:(Id, Date, Transaction)")
-		return err
+		return nil, err
 	}
 
 	var data []models.AccountTxn
@@ -71,12 +73,12 @@ func ProcessFile(file string) error {
 			if err == io.EOF {
 				break
 			}
-			return errors.New("an error happened reading the csv")
+			return nil, errors.New("an error happened reading the csv")
 		}
 
 		rowData, err := ParseData(row)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		ProcessBaseReport(rowData.Transaction)
@@ -89,6 +91,5 @@ func ProcessFile(file string) error {
 			Transaction: rowData.Transaction,
 		})
 	}
-
-	return nil
+	return data, nil
 }
