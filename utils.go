@@ -6,6 +6,7 @@ import (
 	"github.com/mariajdab/txns-email-report/models"
 	"io"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -93,4 +94,12 @@ func ProcessBaseReport(amount float64) {
 		baseReport.AverageCredit += amount
 	}
 	baseReport.TotalBalance += amount
+}
+
+func TnxByMonth(date string) {
+	d := strings.Split(date, "/")
+
+	month, _ := strconv.ParseUint(d[0], 10, 32)
+
+	txnsMonth[month] += 1
 }

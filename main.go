@@ -13,6 +13,7 @@ import (
 )
 
 var baseReport = models.BaseReport{}
+var txnsMonth = make(map[uint64]float64)
 
 func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
@@ -38,6 +39,7 @@ func main() {
 		log.Fatalln("an error happened processing the file")
 	}
 
+	fmt.Println(txnsMonth)
 	fmt.Println(baseReport)
 }
 
@@ -78,6 +80,8 @@ func ProcessFile(file string) error {
 		}
 
 		ProcessBaseReport(rowData.Transaction)
+
+		TnxByMonth(row[1])
 
 		data = append(data, models.AccountTxn{
 			Id:          rowData.Id,
