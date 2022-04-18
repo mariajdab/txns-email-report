@@ -4,6 +4,8 @@ import (
 	"encoding/csv"
 	"errors"
 	"fmt"
+	_ "github.com/lib/pq"
+	"github.com/mariajdab/txns-email-report/database"
 	"github.com/mariajdab/txns-email-report/models"
 	"io"
 	"log"
@@ -21,7 +23,17 @@ func main() {
 
 	filePath := os.Args[1]
 
-	err := ProcessFile(filePath)
+	db, err := database.OpenDB()
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if err := database.CreateTable(db); err != nil {
+		log.Fatal(err)
+	}
+
+	err = ProcessFile(filePath)
 	if err != nil {
 		log.Fatalln("an error happened processing the file")
 	}
