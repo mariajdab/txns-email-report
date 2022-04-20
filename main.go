@@ -12,9 +12,6 @@ import (
 	"os"
 )
 
-var baseReport = models.BaseReport{}
-var txnsMonth = make(map[string]float64)
-
 func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
@@ -34,22 +31,21 @@ func main() {
 		log.Fatal(err)
 	}
 
-	data, err := ProcessFile(filePath)
+	data, reportTxns, err := ProcessFile(filePath)
 	if err != nil {
 		log.Fatalln("an error happened processing the file")
 	}
 
 	database.InsertTxns(db, data)
 
-	fmt.Println(txnsMonth)
-	fmt.Println(baseReport)
+	fmt.Println(reportTxns)
 }
 
-func ProcessFile(file string) ([]models.AccountTxn, error) {
+func ProcessFile(file string) ([]models.AccountTxn, models.Report, error) {
 
 	f, err := os.Open(file)
 	if err != nil {
-		return nil, err
+		return nil, models.Report{}, err
 	}
 	defer f.Close()
 
@@ -57,33 +53,33 @@ func ProcessFile(file string) ([]models.AccountTxn, error) {
 
 	fl, err := ReadFirstLine(csvFile)
 	if err != nil {
-		return nil, err
+		return nil, models.Report{}, err
 	}
 
 	if !ValidateFirstLine(fl) {
 		err = errors.New("mismatch fields expected:(Id, Date, Transaction)")
-		return nil, err
+		return nil, models.Report{}, err
 	}
 
 	var data []models.AccountTxn
+	var r models.Report
 
 	for {
 		row, err := csvFile.Read()
 		if err != nil {
 			if err == io.EOF {
+				r = NewReport()
 				break
 			}
-			return nil, errors.New("an error happened reading the csv")
+			return nil, models.Report{}, errors.New("an error happened reading the csv")
 		}
 
 		rowData, err := ParseData(row)
 		if err != nil {
-			return nil, err
+			return nil, models.Report{}, err
 		}
 
-		ProcessBaseReport(rowData.Transaction)
-
-		ProcessTnxByMonth(row[1])
+		ProcessReport(rowData.Transaction, row[1])
 
 		data = append(data, models.AccountTxn{
 			Id:          rowData.Id,
@@ -91,5 +87,5 @@ func ProcessFile(file string) ([]models.AccountTxn, error) {
 			Transaction: rowData.Transaction,
 		})
 	}
-	return data, nil
+	return data, r, nil
 }

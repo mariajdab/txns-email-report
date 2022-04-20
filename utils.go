@@ -10,7 +10,8 @@ import (
 	"time"
 )
 
-var fieldsCSV = []string{"Id", "Date", "Transaction"}
+var report = models.Report{}
+var monthlyTxns = make(map[string]float64)
 
 func ReadFirstLine(csvFile *csv.Reader) ([]string, error) {
 	// get the first line
@@ -28,6 +29,8 @@ func ReadFirstLine(csvFile *csv.Reader) ([]string, error) {
 }
 
 func ValidateFirstLine(row1 []string) bool {
+	fieldsCSV := []string{"Id", "Date", "Transaction"}
+
 	if len(fieldsCSV) != len(row1) {
 		return false
 	}
@@ -88,13 +91,15 @@ func ParseTxn(rowTxn string) (*float64, error) {
 	return &txn, nil
 }
 
-func ProcessBaseReport(amount float64) {
+func ProcessReport(amount float64, dateStr string) {
 	if amount < 0 {
-		baseReport.AverageDebit += amount
+		report.AverageDebit += amount
 	} else {
-		baseReport.AverageCredit += amount
+		report.AverageCredit += amount
 	}
-	baseReport.TotalBalance += amount
+	report.TotalBalance += amount
+
+	ProcessTnxByMonth(dateStr)
 }
 
 func ProcessTnxByMonth(date string) {
@@ -103,10 +108,19 @@ func ProcessTnxByMonth(date string) {
 	month, _ := strconv.ParseUint(d[0], 10, 32)
 	m := time.Month(month)
 
-	txnsMonth[m.String()] += 1
+	monthlyTxns[m.String()] += 1
 }
 
 func CurrentYear() int {
 	year, _, _ := time.Now().Date()
 	return year
+}
+
+func GetTnxByMonth() map[string]float64 {
+	return monthlyTxns
+}
+
+func NewReport() models.Report {
+	report.MonthlyTxn = GetTnxByMonth()
+	return report
 }
