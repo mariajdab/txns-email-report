@@ -124,7 +124,7 @@ func SendEmail(report models.Report) (string, error) {
 		"mariajdab@gmail.com",
 	}
 
-	t, err := template.ParseFiles("email.tmpl")
+	t, err := template.ParseFiles("email.html")
 	if err != nil {
 		return "", err
 	}
