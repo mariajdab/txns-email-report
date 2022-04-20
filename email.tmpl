@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>Stori report transactions</title>
+    <style>
+
+        html {
+            font-family: 'Open Sans', sans-serif;
+        }
+
+        body {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            position: relative;
+        }
+
+        header {
+            height: 150px;
+        }
+
+        header img {
+            width: 100px;
+            position: absolute;
+            left: 32.5px;
+            top: 32.5px;
+        }
+
+        h1 {
+            font-size: 50px;
+            line-height: 140px;
+            margin: 0 0 0 32.5px;
+        }
+
+        /* main section and video styling */
+
+        main {
+            background: rgb(244, 236, 236);
+        }
+
+        article {
+            padding: 20px;
+        }
+
+        h2 {
+            margin-top: 0;
+        }
+
+        p {
+            line-height: 2;
+        }
+
+        .further-info {
+            color: white;
+            clear: left;
+            padding: 40px 0;
+            background: #31b99e;
+            box-shadow: inset 0 3px 2px rgba(0,0,0,0.5),
+            inset 0 -3px 2px rgba(0,0,0,0.5);
+            margin-bottom:2em;
+        }
+
+    </style>
+</head>
+<body>
+<header>
+    <!-- insert <img> element, link to the small
+        version of the Firefox logo -->
+    <img src="https://media.glassdoor.com/sql/3357578/stori-card-squareLogo-1617075862807.png" alt="stori logo">
+
+</header>
+
+<main>
+    <article>
+        <h3> Dear Customer, </h3>
+
+        <p> We're leetting you know a summary of your last transactions.</p>
+
+    </article>
+
+
+    <div class="further-info">
+        <!-- insert images with srcsets and sizes -->
+        <p>Total balance is {{.TotalBalance}}</p>
+        {{range $month, $n := .MonthlyTxn}}
+        <p> Number of transactions in {{$month}} : {{$n}} </p>
+        {{end}}
+        <p></p>
+        <p>Average debit amount: {{.AverageDebit}}</p>
+        <p>Average credit amount: {{.AverageCredit}}</p>
+    </div>
+
+</main>
+</body>
+<footer>Powered by <a href='https://golang.org/'>Go</a> in 2022</footer>
+</html>
