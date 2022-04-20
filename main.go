@@ -1,18 +1,29 @@
 package main
 
 import (
+	"bytes"
 	"encoding/csv"
 	"errors"
 	"fmt"
+	"html/template"
+	"io"
+	"log"
+	"net/smtp"
+	"os"
+
+	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"github.com/mariajdab/txns-email-report/database"
 	"github.com/mariajdab/txns-email-report/models"
-	"io"
-	"log"
-	"os"
 )
 
 func main() {
+
+	err := godotenv.Load(".env")
+	if err != nil {
+		log.Fatalf("Some error occured. Err: %s", err)
+	}
+
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
 	if len(os.Args) != 2 {
@@ -36,9 +47,17 @@ func main() {
 		log.Fatalln("an error happened processing the file")
 	}
 
+	fmt.Println(reportTxns)
+
+	htmlBody, err := SendEmail(reportTxns)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println(htmlBody)
+
 	database.InsertTxns(db, data)
 
-	fmt.Println(reportTxns)
 }
 
 func ProcessFile(file string) ([]models.AccountTxn, models.Report, error) {
@@ -47,6 +66,7 @@ func ProcessFile(file string) ([]models.AccountTxn, models.Report, error) {
 	if err != nil {
 		return nil, models.Report{}, err
 	}
+
 	defer f.Close()
 
 	csvFile := csv.NewReader(f)
@@ -88,4 +108,48 @@ func ProcessFile(file string) ([]models.AccountTxn, models.Report, error) {
 		})
 	}
 	return data, r, nil
+}
+
+func SendEmail(report models.Report) (string, error) {
+
+	user := os.Getenv("MAIL_USERNAME")
+	password := os.Getenv("MAIL_PASSWORD")
+	host := os.Getenv("MAIL_HOST")
+	port := os.Getenv("MAIL_PORT")
+
+	addr := host + port
+	from := user + "@emailtrap.io"
+
+	to := []string{
+		"mariajdab@gmail.com",
+	}
+
+	t, err := template.ParseFiles("email.tmpl")
+	if err != nil {
+		return "", err
+	}
+	buf := new(bytes.Buffer)
+	if err = t.Execute(buf, report); err != nil {
+		return "", err
+	}
+	body := buf.String()
+
+	//mime := "MIME-version: 1.0;"
+
+	msg := []byte("From: 050e7e2127bc03@emailtrap.io\r\n" +
+		"To: mariajdab@gmail.com\r\n" +
+		"Subject: Test mail\r\n\r\n" +
+		body)
+
+	auth := smtp.PlainAuth("", user, password, host)
+
+	err = smtp.SendMail(addr, auth, from, to, msg)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println("Fake Email sent successfully")
+
+	return body, nil
 }
