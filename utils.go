@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-var report = models.Report{}
+var baseReport = models.BaseReport{}
 var monthlyTxns = make(map[string]float64)
 
 func ReadFirstLine(csvFile *csv.Reader) ([]string, error) {
@@ -76,7 +76,7 @@ func ParseId(rowId string) (*uint64, error) {
 
 func ParseDate(rowDate string) (*time.Time, error) {
 	y := strconv.Itoa(CurrentYear())
-	date, err := time.Parse("2006/1/02", y+"/"+rowDate)
+	date, err := time.Parse("2006/1/2", y+"/"+rowDate)
 	if err != nil {
 		return nil, err
 	}
@@ -93,11 +93,13 @@ func ParseTxn(rowTxn string) (*float64, error) {
 
 func ProcessReport(amount float64, dateStr string) {
 	if amount < 0 {
-		report.AverageDebit += amount
+		baseReport.Debit += amount
+		baseReport.NDebit += 1
 	} else {
-		report.AverageCredit += amount
+		baseReport.Credit += amount
+		baseReport.NCredit += 1
 	}
-	report.TotalBalance += amount
+	baseReport.TotalBalance += amount
 
 	ProcessTnxByMonth(dateStr)
 }
@@ -121,6 +123,13 @@ func GetTnxByMonth() map[string]float64 {
 }
 
 func NewReport() models.Report {
-	report.MonthlyTxn = GetTnxByMonth()
-	return report
+	avD := baseReport.Debit / (float64(baseReport.NDebit))
+	avC := baseReport.Credit / (float64(baseReport.NCredit))
+
+	return models.Report{
+		TotalBalance:  baseReport.TotalBalance,
+		AverageDebit:  avD,
+		AverageCredit: avC,
+		MonthlyTxn:    GetTnxByMonth(),
+	}
 }

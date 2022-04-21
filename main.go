@@ -42,21 +42,29 @@ func main() {
 		log.Fatal(err)
 	}
 
+	// Process and validate the data
 	data, reportTxns, err := ProcessFile(filePath)
 	if err != nil {
-		log.Fatalln("an error happened processing the file")
+		log.Fatalln(err)
 	}
 
-	fmt.Println(reportTxns)
-
+	// Fake email sender (just mock the action with Mailtrap)
 	htmlBody, err := SendEmail(reportTxns)
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	// Insert validated data to db
+	err = database.InsertTxns(db, data)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Print the email body
 	fmt.Println(htmlBody)
 
-	database.InsertTxns(db, data)
+	// Show the Report or Summary Transactions
+	fmt.Printf("%+v\n", reportTxns)
 
 }
 
