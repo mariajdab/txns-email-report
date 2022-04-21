@@ -56,7 +56,6 @@ func InsertTxns(db *sql.DB, data []models.AccountTxn) error {
 	}
 	// remove the last ','
 	sqlStm = sqlStm[0 : len(sqlStm)-1]
-	log.Println(v)
 
 	//prepare the statement
 	stmt, err := db.Prepare(sqlStm)
