@@ -3,11 +3,12 @@ package main
 import (
 	"encoding/csv"
 	"errors"
-	"github.com/mariajdab/txns-email-report/models"
 	"io"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/mariajdab/txns-email-report/models"
 )
 
 var baseReport = models.BaseReport{}

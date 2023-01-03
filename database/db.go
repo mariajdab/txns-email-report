@@ -4,9 +4,10 @@ import (
 	"database/sql"
 	_ "embed"
 	"fmt"
-	"github.com/mariajdab/txns-email-report/models"
 	"log"
 	"os"
+
+	"github.com/mariajdab/txns-email-report/models"
 )
 
 var (
@@ -43,7 +44,7 @@ func CreateTable(db *sql.DB) error {
 	return err
 }
 
-//InsertTxns insert multiples values
+// InsertTxns insert multiples values
 func InsertTxns(db *sql.DB, data []models.AccountTxn) error {
 	sqlStm := "INSERT INTO register_transactions(id, date_at, txn) VALUES "
 	var v []interface{}
